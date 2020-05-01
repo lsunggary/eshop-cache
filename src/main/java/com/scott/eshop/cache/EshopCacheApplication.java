@@ -1,5 +1,6 @@
 package com.scott.eshop.cache;
 
+import com.scott.eshop.cache.listener.InitListener;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -7,10 +8,16 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 库存服务 Application 类
@@ -50,6 +57,33 @@ public class EshopCacheApplication {
     @Bean
     public PlatformTransactionManager platformTransactionManager () {
         return new DataSourceTransactionManager(dataSource());
+    }
+
+    /**
+     * 构建jedis cluster工厂类的配置。
+     * @return
+     */
+    @Bean
+    public JedisCluster JedisClusterFactory() {
+        Set<HostAndPort> jedisClusterNodes = new HashSet<HostAndPort>();
+        jedisClusterNodes.add(new HostAndPort("192.168.52.107", 7005));
+        jedisClusterNodes.add(new HostAndPort("192.168.52.113", 7003));
+        jedisClusterNodes.add(new HostAndPort("192.168.52.115", 7001));
+        JedisCluster jedisCluster = new JedisCluster(jedisClusterNodes);
+        return jedisCluster;
+    }
+
+    /**
+     * 注册监听器
+     * @return
+     */
+    @Bean
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public ServletListenerRegistrationBean servletListenerRegistrationBean() {
+        ServletListenerRegistrationBean servletListenerRegistrationBean =
+                new ServletListenerRegistrationBean();
+        servletListenerRegistrationBean.setListener(new InitListener());
+        return servletListenerRegistrationBean;
     }
 
     /**
