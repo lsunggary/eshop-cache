@@ -15,7 +15,7 @@ public class ShopInfo {
 
     private Integer level;
 
-    private Double goocCommentRate;
+    private Double goodCommentRate;
 
     @Override
     public String toString() {
@@ -23,15 +23,15 @@ public class ShopInfo {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", level=" + level +
-                ", goocCommentRate=" + goocCommentRate +
+                ", goodCommentRate=" + goodCommentRate +
                 '}';
     }
 
-    public ShopInfo(Long id, String name, Integer level, Double goocCommentRate) {
+    public ShopInfo(Long id, String name, Integer level, Double goodCommentRate) {
         this.id = id;
         this.name = name;
         this.level = level;
-        this.goocCommentRate = goocCommentRate;
+        this.goodCommentRate = goodCommentRate;
     }
 
     public Long getId() {
@@ -58,11 +58,11 @@ public class ShopInfo {
         this.level = level;
     }
 
-    public Double getGoocCommentRate() {
-        return goocCommentRate;
+    public Double getGoodCommentRate() {
+        return goodCommentRate;
     }
 
-    public void setGoocCommentRate(Double goocCommentRate) {
-        this.goocCommentRate = goocCommentRate;
+    public void setGoodCommentRate(Double goodCommentRate) {
+        this.goodCommentRate = goodCommentRate;
     }
 }

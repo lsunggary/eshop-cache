@@ -1,5 +1,7 @@
 package com.scott.eshop.cache.model;
 
+import java.util.Date;
+
 /**
  * 商品信息
  * @ClassName ProductInfo
@@ -28,17 +30,7 @@ public class ProductInfo {
 
     private Long shopId;
 
-    public ProductInfo(Long id, String name, Double price, String pictureUrl, String specification, String service, String color, String size, Long shopId) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.pictureUrl = pictureUrl;
-        this.specification = specification;
-        this.service = service;
-        this.color = color;
-        this.size = size;
-        this.shopId = shopId;
-    }
+    private String modifiedTime;
 
     @Override
     public String toString() {
@@ -52,7 +44,29 @@ public class ProductInfo {
                 ", color='" + color + '\'' +
                 ", size='" + size + '\'' +
                 ", shopId=" + shopId +
+                ", modifiedTime='" + modifiedTime + '\'' +
                 '}';
+    }
+
+    public ProductInfo(Long id, String name, Double price, String pictureUrl, String specification, String service, String color, String size, Long shopId, String modifiedTime) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.pictureUrl = pictureUrl;
+        this.specification = specification;
+        this.service = service;
+        this.color = color;
+        this.size = size;
+        this.shopId = shopId;
+        this.modifiedTime = modifiedTime;
+    }
+
+    public String getModifiedTime() {
+        return modifiedTime;
+    }
+
+    public void setModifiedTime(String modifiedTime) {
+        this.modifiedTime = modifiedTime;
     }
 
     public ProductInfo() {

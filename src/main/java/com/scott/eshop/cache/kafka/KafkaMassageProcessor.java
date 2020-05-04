@@ -5,8 +5,13 @@ import com.scott.eshop.cache.model.ProductInfo;
 import com.scott.eshop.cache.model.ShopInfo;
 import com.scott.eshop.cache.service.CacheService;
 import com.scott.eshop.cache.spring.SpringContext;
+import com.scott.eshop.cache.zk.ZookeeperSession;
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * kafka 消息处理线程
@@ -18,6 +23,8 @@ import kafka.consumer.KafkaStream;
  **/
 @SuppressWarnings("rawtypes")
 public class KafkaMassageProcessor implements Runnable {
+
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private KafkaStream kafkaStream;
 
@@ -64,11 +71,46 @@ public class KafkaMassageProcessor implements Runnable {
 
         // 调用商品服务信息的接口
         // 这里使用模拟数据
-        String productInfoJSON = "{\"id\":1,\"name\":\"iphone 11\",\"price\":11000,\"pictureUrl\":\"a.jpg,b.jpg\",\"specification\":\"iphone 11 的售后规格\",\"service\":\"iphone 11 的售后服务\",\"color\":\"红色, 紫色, 粉色\",\"size\":\"1111px\",\"shopId\": 1 }";
+        String productInfoJSON = "{\"id\":6,\"name\":\"iphone 11\",\"price\":11000,\"pictureUrl\":\"a.jpg,b.jpg\",\"specification\":\"iphone 11 的售后规格\",\"service\":\"iphone 11 的售后服务\",\"color\":\"红色, 紫色, 粉色\",\"size\":\"1111px\",\"shopId\": 1 ,\"modifiedTime\": \"2020-05-02 12:00:00\"}";
         ProductInfo productInfo = JSONObject.parseObject(productInfoJSON, ProductInfo.class);
+
+        // 在将数据直接写入redis缓存之前，应该先加一个分布式锁
+        ZookeeperSession zkSession = ZookeeperSession.getInstance();
+        zkSession.acquireDistributeLock(productId);
+
+        //获取到了锁
+        // 先从redis中获取数据
+        ProductInfo existProductInfo = cacheService.getProductInfoFromRedisCache(productId);
+        if (existProductInfo != null) {
+            // 比较时间版本
+            try {
+                Date date = sdf.parse(productInfo.getModifiedTime());
+                Date existedDate = sdf.parse(existProductInfo.getModifiedTime());
+
+                if (date.before(existedDate)) {
+                    System.out.println("current date = " + productInfo.getModifiedTime() + " is before existed date["+existProductInfo.getModifiedTime()+"]");
+                    return;
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            System.out.println(" current date is after existed date[" + existProductInfo.getModifiedTime()+"]");
+        } else {
+            System.out.println("existed product info is null");
+        }
+
+        try {
+            Thread.sleep(10 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         cacheService.saveProductInfo2LocalCache(productInfo);
         System.out.println("================== 获取刚保存到本地缓存的商品信息 ================== ：" + cacheService.getProductInfoFromLocalCache(productId));
         cacheService.saveProductInfo2RedisCache(productInfo);
+
+        // 分布式锁释放
+        zkSession.releaseDistributeLock(productId);
     }
 
     /**

@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisCluster;
+import scala.Product;
 
 import javax.annotation.Resource;
 
@@ -61,6 +62,26 @@ public class CacheServiceImpl implements CacheService {
     public void saveShopInfo2RedisCache(ShopInfo shopInfo) {
         String key = "shop_info_" + shopInfo.getId();
         jedisCluster.set(key, JSONObject.toJSONString(shopInfo));
+    }
+
+    @Override
+    public ProductInfo getProductInfoFromRedisCache(Long productId) {
+        String key = "product_info_" + productId;
+        String json = jedisCluster.get(key);
+        if (json != null) {
+            return JSONObject.parseObject(json, ProductInfo.class);
+        }
+        return null;
+    }
+
+    @Override
+    public ShopInfo getShopInfoFromRedisCache(Long shopId) {
+        String key = "shop_info_" + shopId;
+        String json = jedisCluster.get(key);
+        if (json != null) {
+            return JSONObject.parseObject(json, ShopInfo.class);
+        }
+        return null;
     }
 
 }
