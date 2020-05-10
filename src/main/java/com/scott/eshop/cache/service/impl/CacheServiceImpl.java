@@ -1,6 +1,10 @@
 package com.scott.eshop.cache.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.scott.eshop.cache.hystrix.command.GetProductInfoFromRedisCacheCommand;
+import com.scott.eshop.cache.hystrix.command.GetShopInfoFromRedisCacheCommand;
+import com.scott.eshop.cache.hystrix.command.SaveProductInfo2RedisCacheCommand;
+import com.scott.eshop.cache.hystrix.command.SaveShopInfo2RedisCacheCommand;
 import com.scott.eshop.cache.model.ProductInfo;
 import com.scott.eshop.cache.model.ShopInfo;
 import com.scott.eshop.cache.service.CacheService;
@@ -54,34 +58,26 @@ public class CacheServiceImpl implements CacheService {
 
     @Override
     public void saveProductInfo2RedisCache(ProductInfo productInfo) {
-        String key = "product_info_" + productInfo.getId();
-        jedisCluster.set(key, JSONObject.toJSONString(productInfo));
+        SaveProductInfo2RedisCacheCommand command = new SaveProductInfo2RedisCacheCommand(productInfo);
+        command.execute();
     }
 
     @Override
     public void saveShopInfo2RedisCache(ShopInfo shopInfo) {
-        String key = "shop_info_" + shopInfo.getId();
-        jedisCluster.set(key, JSONObject.toJSONString(shopInfo));
+        SaveShopInfo2RedisCacheCommand command = new SaveShopInfo2RedisCacheCommand(shopInfo);
+        command.execute();
     }
 
     @Override
     public ProductInfo getProductInfoFromRedisCache(Long productId) {
-        String key = "product_info_" + productId;
-        String json = jedisCluster.get(key);
-        if (json != null) {
-            return JSONObject.parseObject(json, ProductInfo.class);
-        }
-        return null;
+        GetProductInfoFromRedisCacheCommand command = new GetProductInfoFromRedisCacheCommand(productId);
+        return command.execute();
     }
 
     @Override
     public ShopInfo getShopInfoFromRedisCache(Long shopId) {
-        String key = "shop_info_" + shopId;
-        String json = jedisCluster.get(key);
-        if (json != null) {
-            return JSONObject.parseObject(json, ShopInfo.class);
-        }
-        return null;
+        GetShopInfoFromRedisCacheCommand command = new GetShopInfoFromRedisCacheCommand(shopId);
+        return command.execute();
     }
 
 }

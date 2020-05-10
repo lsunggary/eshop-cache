@@ -1,6 +1,7 @@
 package com.scott.eshop.cache.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.scott.eshop.cache.hystrix.command.ProductInfoCommand;
 import com.scott.eshop.cache.model.ProductInfo;
 import com.scott.eshop.cache.model.ShopInfo;
 import com.scott.eshop.cache.prewarm.CachePrewarmThread;
@@ -59,8 +60,8 @@ public class CacheController {
         if (productInfo == null) {
             // 就需要从数据源重新去拉去数据，重建缓存。
             // 模拟数据
-            String productInfoJSON = "{\"id\":"+productId+",\"name\":\"iphone 11\",\"price\":11000,\"pictureUrl\":\"a.jpg,b.jpg\",\"specification\":\"iphone 11 的售后规格\",\"service\":\"iphone 11 的售后服务\",\"color\":\"红色, 紫色, 粉色\",\"size\":\"1111px\",\"shopId\": 1 ,\"modifiedTime\": \"2020-05-02 12:00:01\"}";
-            productInfo = JSONObject.parseObject(productInfoJSON, ProductInfo.class);
+            ProductInfoCommand command = new ProductInfoCommand(productId);
+            productInfo = command.execute();
 
             // 将数据推送到内存队列中
             RebuildCacheQueue rebuildCacheQueue = RebuildCacheQueue.getInstance();
